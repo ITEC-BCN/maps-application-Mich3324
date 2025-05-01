@@ -1,5 +1,0 @@
-S'han de crear dos arxius de navegació:
- - Una per comprovar si s'han acceptat els permisos que demana l'app.
- - Una altra per navegar entre les diverses opcions del drawer i la resta de pantalles.
-
-Definim les rutes, el Drawer i els seus ítems.
