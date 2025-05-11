@@ -21,6 +21,9 @@ sealed class Destination{
     @Serializable
     class CrearMarcador(val lat:Double, val lng:Double):Destination()
 
+    @Serializable
+    class DetailMarker (val id:Int):Destination()
+
 
 
 }

@@ -50,8 +50,8 @@ import kotlinx.io.IOException
 @Composable
 fun CreateMarker(
     navigateToDetail: (String) -> Unit,
-    latitud: Double,
-    longitud: Double
+    latd: Double,
+    logd: Double
 ) {
     val context = LocalContext.current
     val factory = remember {
@@ -61,8 +61,8 @@ fun CreateMarker(
     val bitmap = remember { mutableStateOf<Bitmap?>(null) }
     val marckName: String by myViewModel.marckName.observeAsState("")
     val marckDescripcion: String by myViewModel.descripcion.observeAsState("")
-    val latitud: Double by myViewModel.latitud.observeAsState(0.0)
-    val longitud: Double by myViewModel.longitud.observeAsState(0.0)
+    val latitud: Double by myViewModel.latitud.observeAsState(latd)
+    val longitud: Double by myViewModel.longitud.observeAsState(logd)
     val image: String by myViewModel.image.observeAsState("")
 
     // Launcher para la cámara

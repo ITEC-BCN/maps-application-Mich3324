@@ -13,11 +13,11 @@ class MarcadorRepository(val client: SupabaseClient) {
 
 
     suspend fun getAllMarcadores(): List<Marcador> {
-        //return client.from("Marcador").select().decodeList<Marcador>()
-        return client
+        return client.from("Marcador").select().decodeList<Marcador>()
+       /* return client
             .from("Marcador")
             .select( Columns.raw("nombre, descripcion, latitud, longitud, image_url"))
-            .decodeList<Marcador>()
+            .decodeList<Marcador>()*/
     }
 
     suspend fun getMarcador(id: String): Marcador {

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Base64
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -36,13 +37,13 @@ class MapsViewModel(private val supabaseClient: SupabaseClient) : ViewModel() {
 
     // lista Marcadores
 
-    private val _MarckerList = MutableLiveData<List<Marcador>>()
-    val studentsList = _MarckerList
+    private val _marckerList = MutableLiveData<List<Marcador>>()
+    val marckerList = _marckerList
 
     //seleccionar Marcador
 
-    private var _selectedMarker: Marcador? = null
-
+    private var _selectedMarker = MutableLiveData<Marcador?>()
+    var selectedMarker: LiveData<Marcador?> = _selectedMarker
 
 
     //crear nuevo marcador
@@ -93,11 +94,11 @@ fun insertNewStudent(name: String, mark: String, image: Bitmap?) {
 }
 */
 
-    fun getAllStudents() {
+    fun getAllMarkers() {
         CoroutineScope(Dispatchers.IO).launch {
-            val databaseStudents = repository.getAllMarcadores()
+            val databaseMarker = repository.getAllMarcadores()
             withContext(Dispatchers.Main) {
-                _MarckerList.value = databaseStudents
+                _marckerList.value = databaseMarker
             }
         }
     }
@@ -111,11 +112,11 @@ fun insertNewStudent(name: String, mark: String, image: Bitmap?) {
     fun deleteStudent(id: String) {
         CoroutineScope(Dispatchers.IO).launch {
             repository.deleteMarcador(id)
-            getAllStudents()
+            getAllMarkers()
         }
     }
 
-    fun getStudent(id: String) {
+    /*fun getMarker(id: String) {
         if (_selectedMarker == null) {
             CoroutineScope(Dispatchers.IO).launch {
                 val marcador = repository.getMarcador(id)
@@ -125,6 +126,19 @@ fun insertNewStudent(name: String, mark: String, image: Bitmap?) {
                 }
             }
         }
+    }*/
+
+    fun getMarker(marcador: Marcador) {
+        _selectedMarker.value = marcador
+    }
+
+    fun getMarkerById(id: Int) {
+        val marcador = _marckerList.value?.find { it.id == id }
+        _selectedMarker.value = marcador
+    }
+
+    fun clearSelectedMarcador() {
+        _selectedMarker.value = null
     }
 
     fun editMarkerName(name: String) {
