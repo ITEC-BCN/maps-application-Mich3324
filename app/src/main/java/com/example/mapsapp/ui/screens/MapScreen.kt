@@ -1,25 +1,49 @@
 package com.example.mapsapp.ui.screens
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mapsapp.MyAppSingleton
+import com.example.mapsapp.viewmodels.MapsViewModel
+import com.example.mapsapp.viewmodels.MapsViewModelFactory
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 
 @Composable
-fun MapsScreen(modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        val itb = LatLng(41.4534225, 2.1837151)
-        val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(itb, 17f)
+fun MapsScreen(navigateToNext: (Double,Double) -> Unit) {
+    val factory = remember {
+        MapsViewModelFactory(MyAppSingleton.database.client)
+    }
+    val viewModel: MapsViewModel = viewModel(factory = factory)
+
+    val markerPositions by viewModel.markerPositions.collectAsState()
+    val cameraPositionState = viewModel.initialCameraPosition
+
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        onMapLongClick = {
+                latLng ->
+            viewModel.setLatLng(latLng.latitude, latLng.longitude)
+            navigateToNext(latLng.latitude, latLng.longitude)
+
         }
-        GoogleMap(
-            modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
-        )
+    ) {
+        markerPositions.forEachIndexed { index, position ->
+            Marker(
+                state = MarkerState(position = position),
+                title = "Marcador #${index + 1}",
+                snippet = "Tócalo para eliminar",
+                onClick = {
+                    viewModel.removeMarker(position)
+                    true
+                }
+            )
+        }
     }
 }
-

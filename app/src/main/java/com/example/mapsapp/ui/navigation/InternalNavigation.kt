@@ -5,7 +5,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.mapsapp.ui.navigation.Destination
 
 // aqui va la navegacion desde el mapa hasta cualquiera de las pantallas
@@ -18,7 +17,19 @@ fun InternalnavigationWraper(navController: NavHostController, modifier: Modifie
         startDestination = Destination.Map
     ) {
         composable<Destination.Map> {
-            MapsScreen()
+            MapsScreen() { lat,lng ->
+                navController.navigate(Destination.CrearMarcador(lat = lat, lng= lng))
+            }
+        }
+
+        composable<Destination.CrearMarcador> { backStackEntry ->
+            val lat = backStackEntry.arguments?.getDouble("lat") ?: 0.0
+            val lng = backStackEntry.arguments?.getDouble("lng") ?: 0.0
+            CreateMarker(
+                navigateToDetail = { id -> navController.navigate("detail/$id") },
+                latitud = lat,
+                longitud = lng
+            )
         }
         composable<Destination.List> {
             List()

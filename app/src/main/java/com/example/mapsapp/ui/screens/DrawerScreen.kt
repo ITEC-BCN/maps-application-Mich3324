@@ -1,5 +1,6 @@
 package com.example.mapsapp.ui.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -74,8 +75,11 @@ fun DrawerMenu(navController: NavHostController) {
                 )
             }
         ) { innerPadding ->
-            InternalnavigationWraper(navController, Modifier.padding(innerPadding))
+            Box(modifier = Modifier.padding(innerPadding)) {
+                InternalnavigationWraper(navController, Modifier.padding(innerPadding))
+            }
         }
+
 
 
     }
