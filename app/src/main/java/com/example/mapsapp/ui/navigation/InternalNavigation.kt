@@ -23,36 +23,31 @@ fun InternalnavigationWraper(navController: NavHostController, modifier: Modifie
         startDestination = Destination.Map
     ) {
         composable<Destination.Map> {
-            MapsScreen() { lat,lng ->
-                navController.navigate(Destination.CrearMarcador(lat = lat, lng= lng))
-            }
+            MapsScreen(
+                { id ->
+                    navController.navigate(Destination.Detail(id))
+                },
+                navigateToCreate = {lat, lang -> navController.navigate(Destination.CrearMarcador(lat,lang))}
+            )
         }
 
         composable<Destination.CrearMarcador> { backStackEntry ->
             val lat = backStackEntry.arguments?.getDouble("lat") ?: 0.0
             val lng = backStackEntry.arguments?.getDouble("lng") ?: 0.0
             CreateMarker(
-                navigateToDetail = { id -> navController.navigate(Destination.List) },
+                navigateBack = {navController.navigate(Destination.Map) }, //
                 latd = lat,
                 logd = lng
             )
         }
         composable<Destination.List> {
-            List (navigateToDetail = { id -> navController.navigate(Destination.DetailMarker) })
+            List(navigateToDetail = { id -> navController.navigate(Destination.Detail(id)) })
         }
 
-        composable<Destination.DetailMarker> { backStackEntry ->
-            val id = backStackEntry.toRoute<Destination.DetailMarker>()
-            DetailMarker(id.id) { navController.navigate(Destination.List) } // aqui ha de navegar a lapantalla de editar
-        }
 
-        /* composable<Destinacion.Pantalla2> { backStackEntry ->
-            val pantalla2 = backStackEntry.toRoute<Destinacion.Pantalla2>()
-            DetalleScreen(pantalla2.id) { navController.navigate(Destinacion.Pantalla1) }
-        }*/
-        /*composable<Destination.Detail> { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")
-            MarkerDetailScreen(id = id)
-        }*/
+        composable<Destination.Detail> { backStackEntry ->
+            val id = backStackEntry.toRoute<Destination.Detail>()
+            DetailMarker(modifier,id.id) { navController.navigate(Destination.List) } // des de aqui ha de navegar a lapantalla de editar
+        }
     }
 }

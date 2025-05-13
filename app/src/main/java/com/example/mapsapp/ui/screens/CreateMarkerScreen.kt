@@ -42,22 +42,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mapsapp.MyAppSingleton
 import com.example.mapsapp.viewmodels.MapsViewModel
-import com.example.mapsapp.viewmodels.MapsViewModelFactory
+
 import kotlinx.io.IOException
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("RememberReturnType")
 @Composable
 fun CreateMarker(
-    navigateToDetail: (String) -> Unit,
+    navigateBack: () -> Unit,
     latd: Double,
     logd: Double
 ) {
-    val context = LocalContext.current
-    val factory = remember {
-        MapsViewModelFactory(MyAppSingleton.database.client)
-    }
-    val myViewModel: MapsViewModel = viewModel(factory = factory)
+    val context = LocalContext.current //magia
+    val myViewModel: MapsViewModel = viewModel<MapsViewModel>()
     val bitmap = remember { mutableStateOf<Bitmap?>(null) }
     val marckName: String by myViewModel.marckName.observeAsState("")
     val marckDescripcion: String by myViewModel.descripcion.observeAsState("")
@@ -151,59 +148,10 @@ fun CreateMarker(
                 longitud,
                 bitmap.value
             )
+            navigateBack()
         }) {
             Text("Insertar marcador")
         }
     }
 
 }
-
-/*fun CreateMarker(
-    navigateToDetail: (String) -> Unit,
-    latitud: Double,
-    longitud: Double
-) {
-    val factory = remember {
-        MapsViewModelFactory(MyAppSingleton.database.client)
-    }
-    val myViewModel: MapsViewModel = viewModel(factory = factory)
-
-    val marckName: String by myViewModel.marckName.observeAsState("")
-    val marckDescripcion: String by myViewModel.descripcion.observeAsState("")
-    val latitud:Double by myViewModel.latitud.observeAsState(0.0)
-    val longitud:Double by myViewModel.longitud.observeAsState(0.0)
-    val image:String by myViewModel.image.observeAsState("")
-
-
-    LaunchedEffect(latitud, longitud) {
-        myViewModel.setLatLng(latitud, longitud)
-    }
-
-
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxWidth().weight(0.4f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Text("Create newMarker", fontSize = 28.sp)
-            TextField(value = marckName, onValueChange = { myViewModel.editMarkerName(it) })
-            TextField(value = marckDescripcion, onValueChange = { myViewModel.editMarkerDescription(it) })
-            Button(onClick = { myViewModel.insertNewMarker(marckName,marckDescripcion,latitud,longitud, image) }) {
-                Text("Insert")
-            }
-        }
-    }
-}*/
-
-/*Column(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxWidth().weight(0.4f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Text("Create newMarker", fontSize = 28.sp)
-            TextField(value = studentName, onValueChange = { myViewModel.editStudentName(it) })
-            TextField(value = studentMark, onValueChange = { myViewModel.editStudentMark(it) })
-            Button(onClick = { myViewModel.insertNewStudent(studentName, studentMark) }) {
-                Text("Insert")
-            }
-        }
-    }
-}*/

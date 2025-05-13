@@ -9,6 +9,6 @@ class MyAppSingleton: Application() {
     }
     override fun onCreate() {
         super.onCreate()
-        database = MySupabaseClient()
+        database = MySupabaseClient() //aqui se comunica con la base de datos
     }
 }

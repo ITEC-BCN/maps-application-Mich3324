@@ -14,18 +14,14 @@ import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.MutableLiveData
 import com.example.mapsapp.MyAppSingleton
 import com.example.mapsapp.data.Marcador
-import com.example.mapsapp.data.MarcadorRepository
-import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-class MapsViewModel(private val supabaseClient: SupabaseClient) : ViewModel() {
-    val repository = MarcadorRepository(supabaseClient)
-    val database = MyAppSingleton.database
-
+class MapsViewModel() : ViewModel() {
+    val database = MyAppSingleton.database // y aqui llama a mi supabase con la funciones
 
     // Usamos MutableStateFlow para que Compose pueda reaccionar a los cambios
     private val _markerPositions = MutableStateFlow<List<LatLng>>(emptyList())
@@ -77,68 +73,72 @@ class MapsViewModel(private val supabaseClient: SupabaseClient) : ViewModel() {
                 longitud = longitud,
                 image_url = imageName
             )
-            repository.insertMarcador(newMarck)
+            database.insertMarcador(newMarck)
             //repository.getAllMarcadores()
         }
     }
 
-    /*@RequiresApi(Build.VERSION_CODES.O)
-fun insertNewStudent(name: String, mark: String, image: Bitmap?) {
-   val stream = ByteArrayOutputStream()
-   image?.compress(Bitmap.CompressFormat.PNG, 0, stream)
-   CoroutineScope(Dispatchers.IO).launch {
-       val imageName = database.uploadImage(stream.toByteArray())
-
-       database.insertStudent(name, mark.toDouble(), imageName)
-   }
-}
-*/
 
     fun getAllMarkers() {
         CoroutineScope(Dispatchers.IO).launch {
-            val databaseMarker = repository.getAllMarcadores()
+            val databaseMarker = database.getAllMarcador()
             withContext(Dispatchers.Main) {
                 _marckerList.value = databaseMarker
             }
         }
     }
 
-    fun updateMarcker(id: String, name: String, descripcion: String) {
+   /* @RequiresApi(Build.VERSION_CODES.O)
+    fun updateMarcker(id: Int, name: String, descripcion: String,imageName:String?, image: ByteArray?) {
         CoroutineScope(Dispatchers.IO).launch {
-            repository.updateMarcador(id, name, descripcion)
+            database.updateMarcador(id, name, descripcion,imageName,image)
+        }
+    }*/
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun updateMarker(id: Int, nombre: String, descripcion: String, image: Bitmap?){
+        var imageName : String? = null
+        var stream: ByteArrayOutputStream? = null
+        if(image != null){
+            stream = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.PNG, 0, stream)
+            imageName =
+                _selectedMarker?.value?.image_url?.removePrefix("https://xlebkybtqrbnyowaavbq.supabase.co/storage/v1/object/public/images/")
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            database.updateMarcador(id, nombre, descripcion, imageName, stream?.toByteArray())
         }
     }
 
-    fun deleteStudent(id: String) {
+    fun deleteMarker(id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            repository.deleteMarcador(id)
+            database.deleteMarcador(id)
             getAllMarkers()
         }
     }
 
-    /*fun getMarker(id: String) {
-        if (_selectedMarker == null) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val marcador = repository.getMarcador(id)
-                withContext(Dispatchers.Main) {
-                    _selectedMarker = marcador
-                    _marckername.value = marcador.nombre
-                }
-            }
-        }
-    }*/
 
-    fun getMarker(marcador: Marcador) {
-        _selectedMarker.value = marcador
-    }
+
 
     fun getMarkerById(id: Int) {
-        val marcador = _marckerList.value?.find { it.id == id }
-        _selectedMarker.value = marcador
+        CoroutineScope(Dispatchers.IO).launch{
+            val marcador = database.getMarcador(id)
+            withContext(Dispatchers.Main){
+                _selectedMarker.value = marcador
+            }
+        }
+
+    }
+
+    fun insertMarker(marcador: Marcador) {
+        CoroutineScope(Dispatchers.IO).launch {
+            database.insertMarcador(marcador)
+            getAllMarkers()
+        }
     }
 
     fun clearSelectedMarcador() {
-        _selectedMarker.value = null
+        _selectedMarker.value= null
     }
 
     fun editMarkerName(name: String) {
@@ -173,60 +173,4 @@ fun insertNewStudent(name: String, mark: String, image: Bitmap?) {
 
 }
 
-
-
-
-    /*fun onDescripcionChange(newDescripcion: String) {
-    _descripcion.value = newDescripcion
-}
-
-fun resetFormulario() {
-    _marckername.value = ""
-    _descripcion.value = ""
-}
-
-
-    /*fun guardarUbicacionCompleta(lat: Double, lng: Double) {
-        val data = buildJsonObject {
-            put("latitud", lat)
-            put("longitud", lng)
-            put("nombre", name.value)
-            put("descripcion", descripcion.value)
-        }*/
-
-        viewModelScope.launch {
-            try {
-                MyAppSingleton.database.client
-                    .postgrest["Marcador"]
-                    .insert(data)
-                cargarUbicacionesDesdeSupabase()
-                resetFormulario()
-            } catch (e: Exception) {
-                Log.e("Supabase", "Error al guardar ubicación completa", e)
-            }
-        }
-    }
-
-    private val json = Json { ignoreUnknownKeys = true }
-
-    fun cargarUbicacionesDesdeSupabase() {
-        viewModelScope.launch {
-            try {
-                val response = MyAppSingleton.database.client
-                    .postgrest["ubicaciones"]
-                    .select()
-
-                val body = response.data.toString()
-
-                val ubicaciones: List<Marcador> = json.decodeFromString(body)
-                val posiciones = ubicaciones.map { LatLng(it.latitud, it.longitud) }
-                _markerPositions.value = posiciones
-
-            } catch (e: Exception) {
-                Log.e("Supabase", "Error al cargar ubicaciones", e)
-            }
-        }
-    }
-
-}*/
 

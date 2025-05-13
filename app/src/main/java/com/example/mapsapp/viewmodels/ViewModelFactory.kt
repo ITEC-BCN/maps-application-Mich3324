@@ -1,4 +1,4 @@
-package com.example.mapsapp.viewmodels
+/*package com.example.mapsapp.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,4 +12,4 @@ class MapsViewModelFactory(private val client: SupabaseClient) : ViewModelProvid
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-}
+}*/
