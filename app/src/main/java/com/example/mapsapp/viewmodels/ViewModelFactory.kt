@@ -1,15 +1,16 @@
-/*package com.example.mapsapp.viewmodels
+package com.example.mapsapp.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.jan.supabase.SupabaseClient
+import com.example.mapsapp.utils.SharedPreferencesHelper
 
-class MapsViewModelFactory(private val client: SupabaseClient) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MapsViewModel::class.java)) {
 
-            return MapsViewModel(client) as T
+class MapsViewModelFactory(private val shredPreferences: SharedPreferencesHelper) : ViewModelProvider.Factory {
+    override fun <T: ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
+            return AuthViewModel(shredPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-}*/
+
+}

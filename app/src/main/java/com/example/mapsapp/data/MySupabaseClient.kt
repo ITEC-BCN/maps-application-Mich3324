@@ -13,27 +13,14 @@ import io.github.jan.supabase.storage.storage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class MySupabaseClient {
+class MySupabaseClient(var marcador: SupabaseClient) {
 
-    var marcador: SupabaseClient
-    var storage : Storage
+
+    var storage : Storage = marcador.storage
 
 
     private val supabaseUrl = BuildConfig.SUPABASE_URL
     private val supabaseKey = BuildConfig.SUPABASE_KEY
-
-
-    constructor() {
-        marcador = createSupabaseClient(
-            supabaseUrl = supabaseUrl,
-            supabaseKey = supabaseKey
-        ) {
-            install(Postgrest)
-            install(Storage)
-        }
-
-        storage = marcador.storage
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun uploadImage(imageFile: ByteArray): String {
