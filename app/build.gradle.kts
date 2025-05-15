@@ -103,6 +103,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt:3.1.4")
     implementation(platform("io.github.jan-tennert.supabase:bom:3.1.4"))
     implementation("io.ktor:ktor-client-android:3.1.2")
+    implementation ("androidx.compose.material:material:1.4.3")
+
 
 
 
