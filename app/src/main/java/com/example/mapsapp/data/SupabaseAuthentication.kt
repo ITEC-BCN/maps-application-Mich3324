@@ -27,7 +27,7 @@ class SupabaseAuthentication {
 
     }
 
-    suspend fun RegistrepWithEmail(emailValue: String, passwordValue: String): AuthState {
+    suspend fun RegistreWithEmail(emailValue: String, passwordValue: String): AuthState {
         try {
             supabase.auth.signUpWith(Email) {
                 email = emailValue

@@ -8,6 +8,13 @@ sealed class Destination{
     object Permissions: Destination()
 
     @Serializable
+    object InicioDeSesion:Destination()
+
+    @Serializable
+    object RegistroUsuario:Destination()
+
+
+    @Serializable
     object Drawer : Destination()
 
     @Serializable
@@ -22,8 +29,6 @@ sealed class Destination{
 
     @Serializable
     data class Detail(val id: Int) : Destination()
-
-
 
 }
 

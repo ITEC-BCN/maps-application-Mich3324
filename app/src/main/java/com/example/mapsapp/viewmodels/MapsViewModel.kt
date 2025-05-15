@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Base64
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.tween
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.CameraPosition
@@ -12,10 +13,13 @@ import com.google.maps.android.compose.CameraPositionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.mapsapp.MyAppSingleton
 import com.example.mapsapp.data.Marcador
+import com.google.android.gms.maps.CameraUpdateFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -54,7 +58,7 @@ class MapsViewModel() : ViewModel() {
     val _image = MutableLiveData<String>()
     val image = _image
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    /*@RequiresApi(Build.VERSION_CODES.O)
     fun insertNewMarker(
         nombre: String,
         descripcion: String,
@@ -76,24 +80,63 @@ class MapsViewModel() : ViewModel() {
             database.insertMarcador(newMarck)
             //repository.getAllMarcadores()
         }
+    }*/
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun insertNewMarker(
+        nombre: String,
+        descripcion: String,
+        latitud: Double,
+        longitud: Double,
+        image: Bitmap?
+    ) {
+        val stream = ByteArrayOutputStream()
+        image?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val imageName = database.uploadImage(stream.toByteArray())
+            val newMarck = Marcador(
+                nombre = nombre,
+                descripcion = descripcion,
+                latitud = latitud,
+                longitud = longitud,
+                image_url = imageName
+            )
+            database.insertMarcador(newMarck)
+
+            //Actualiza la lista para que la vista reaccione
+            /*withContext(Dispatchers.Main) {*/
+                /*delay(5000)*/
+
+            val nuevos = database.getAllMarcador()
+            withContext(Dispatchers.Main) {
+                _marckerList.value = nuevos
+            }
+                /*getAllMarkers()*/
+            /*}*/
+        }
     }
 
 
-    fun getAllMarkers() {
+
+    /*fun getAllMarkers() {
         CoroutineScope(Dispatchers.IO).launch {
             val databaseMarker = database.getAllMarcador()
             withContext(Dispatchers.Main) {
                 _marckerList.value = databaseMarker
             }
         }
-    }
-
-   /* @RequiresApi(Build.VERSION_CODES.O)
-    fun updateMarcker(id: Int, name: String, descripcion: String,imageName:String?, image: ByteArray?) {
-        CoroutineScope(Dispatchers.IO).launch {
-            database.updateMarcador(id, name, descripcion,imageName,image)
-        }
     }*/
+
+    fun getAllMarkers() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val databaseMarker = database.getAllMarcador()
+            withContext(Dispatchers.Main) {
+                _marckerList.value = databaseMarker
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateMarker(id: Int, nombre: String, descripcion: String, image: Bitmap?){
@@ -109,6 +152,20 @@ class MapsViewModel() : ViewModel() {
             database.updateMarcador(id, nombre, descripcion, imageName, stream?.toByteArray())
         }
     }
+
+    fun selectMarker(marcador: Marcador) {
+        _selectedMarker.value = marcador
+        viewModelScope.launch {
+            initialCameraPosition.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(marcador.latitud, marcador.longitud),
+                    15f // Puedes ajustar el nivel de zoom (ej. entre 10 y 20)
+                )
+            )
+        }
+    }
+
+
 
     fun deleteMarker(id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -169,6 +226,19 @@ class MapsViewModel() : ViewModel() {
 
     fun setBitmap(bitmap: Bitmap) {
         _image.value = bitmapToBase64(bitmap)
+    }
+
+
+    val defaultZoom = 10f
+    val defaultLatLng = LatLng(41.3874, 2.1686)
+
+    fun resetCamera() {
+        _selectedMarker.value = null
+        viewModelScope.launch {
+            initialCameraPosition.animate(
+                update = CameraUpdateFactory.newLatLngZoom(defaultLatLng, defaultZoom)
+            )
+        }
     }
 
 }

@@ -60,7 +60,6 @@ fun CreateMarker(
     val marckDescripcion: String by myViewModel.descripcion.observeAsState("")
     val latitud: Double by myViewModel.latitud.observeAsState(latd)
     val longitud: Double by myViewModel.longitud.observeAsState(logd)
-    val image: String by myViewModel.image.observeAsState("")
 
     // Launcher para la cámara
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmapIt ->
@@ -148,7 +147,7 @@ fun CreateMarker(
                 longitud,
                 bitmap.value
             )
-            navigateBack()
+            navigateBack() // Esto te lleva de nuevo al mapa
         }) {
             Text("Insertar marcador")
         }

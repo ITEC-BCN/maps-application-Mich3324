@@ -51,15 +51,17 @@ class AuthViewModel(private val sharedPreferencesHelper: SharedPreferencesHelper
 
     fun signUp() {
         viewModelScope.launch {
-            _authState.value = authManager.signInWithEmail (_email.value!!, _password.value!!)
+            _authState.value = authManager.RegistreWithEmail(_email.value!!, _password.value!!)
             if (_authState.value is AuthState.Error) {
                 _showError.value = true
             } else {
                 val session = authManager.retrieveCurrentSession()
-                sharedPreferencesHelper.saveAuthData(
-                    session!!.accessToken,
-                    session.refreshToken
-                )
+                session?.let {
+                    sharedPreferencesHelper.saveAuthData(
+                        it.accessToken,
+                        it.refreshToken
+                    )
+                }
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.example.mapsapp.ui.screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mapsapp.ui.navigation.DrawerItem
-import com.example.mapsapp.ui.navigation.MainnavigationWraper
 import kotlinx.coroutines.launch
 
 
