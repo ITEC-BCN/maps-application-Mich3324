@@ -17,9 +17,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.mapsapp.MyAppSingleton
 import com.example.mapsapp.data.Marcador
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -45,6 +47,11 @@ class MapsViewModel() : ViewModel() {
     private var _selectedMarker = MutableLiveData<Marcador?>()
     var selectedMarker: LiveData<Marcador?> = _selectedMarker
 
+    //is loading
+
+    private val _showLoading = MutableLiveData<Boolean>()
+    var showloading = _showLoading
+
 
     //crear nuevo marcador
     private val _marckername = MutableLiveData<String>()
@@ -58,30 +65,6 @@ class MapsViewModel() : ViewModel() {
     val _image = MutableLiveData<String>()
     val image = _image
 
-    /*@RequiresApi(Build.VERSION_CODES.O)
-    fun insertNewMarker(
-        nombre: String,
-        descripcion: String,
-        latitud: Double,
-        longitud: Double,
-        image: Bitmap?
-    ) {
-        val stream = ByteArrayOutputStream()
-        image?.compress(Bitmap.CompressFormat.PNG, 0, stream)
-        CoroutineScope(Dispatchers.IO).launch {
-            val imageName = database.uploadImage(stream.toByteArray())
-            val newMarck = Marcador(
-                nombre = nombre,
-                descripcion = descripcion,
-                latitud = latitud,
-                longitud = longitud,
-                image_url = imageName
-            )
-            database.insertMarcador(newMarck)
-            //repository.getAllMarcadores()
-        }
-    }*/
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun insertNewMarker(
@@ -93,6 +76,7 @@ class MapsViewModel() : ViewModel() {
     ) {
         val stream = ByteArrayOutputStream()
         image?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        _showLoading.value = false
 
         viewModelScope.launch(Dispatchers.IO) {
             val imageName = database.uploadImage(stream.toByteArray())
@@ -112,31 +96,26 @@ class MapsViewModel() : ViewModel() {
             val nuevos = database.getAllMarcador()
             withContext(Dispatchers.Main) {
                 _marckerList.value = nuevos
+                _showLoading.value = true
             }
                 /*getAllMarkers()*/
             /*}*/
         }
     }
 
-
-
-    /*fun getAllMarkers() {
-        CoroutineScope(Dispatchers.IO).launch {
-            val databaseMarker = database.getAllMarcador()
-            withContext(Dispatchers.Main) {
-                _marckerList.value = databaseMarker
-            }
-        }
-    }*/
-
     fun getAllMarkers() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val databaseMarker = database.getAllMarcador()
-            withContext(Dispatchers.Main) {
-                _marckerList.value = databaseMarker
+        viewModelScope.launch {
+            showloading.value = true
+            withContext(Dispatchers.IO) {
+                val databaseMarker = database.getAllMarcador()
+                withContext(Dispatchers.Main) {
+                    _marckerList.value = databaseMarker
+                    showloading.value = false
+                }
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateMarker(id: Int, nombre: String, descripcion: String, image: Bitmap?){
@@ -153,17 +132,8 @@ class MapsViewModel() : ViewModel() {
         }
     }
 
-    fun selectMarker(marcador: Marcador) {
-        _selectedMarker.value = marcador
-        viewModelScope.launch {
-            initialCameraPosition.animate(
-                update = CameraUpdateFactory.newLatLngZoom(
-                    LatLng(marcador.latitud, marcador.longitud),
-                    15f // Puedes ajustar el nivel de zoom (ej. entre 10 y 20)
-                )
-            )
-        }
-    }
+
+
 
 
 
@@ -194,9 +164,7 @@ class MapsViewModel() : ViewModel() {
         }
     }
 
-    fun clearSelectedMarcador() {
-        _selectedMarker.value= null
-    }
+
 
     fun editMarkerName(name: String) {
         _marckername.value = name
@@ -240,6 +208,66 @@ class MapsViewModel() : ViewModel() {
             )
         }
     }
+
+    //para el card floating
+
+    fun selectMarker(marcador: Marcador) {
+        _selectedMarker.value = marcador
+        viewModelScope.launch {
+            initialCameraPosition.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(marcador.latitud, marcador.longitud),
+                    15f // Puedes ajustar el nivel de zoom (ej. entre 10 y 20)
+                )
+            )
+        }
+    }
+
+    fun clearSelectedMarcador() {
+        _selectedMarker.value= null
+    }
+
+    fun clearSelectedMarkerAndResetCamera() {
+        _selectedMarker.value = null
+
+        viewModelScope.launch {
+            // Solo si hay marcadores en la lista
+            val markers = marckerList.value
+            if (!markers.isNullOrEmpty()) {
+                val builder = LatLngBounds.Builder()
+                markers.forEach { marcador ->
+                    builder.include(LatLng(marcador.latitud, marcador.longitud))
+                }
+                val bounds = builder.build()
+
+                initialCameraPosition.animate(
+                    update = CameraUpdateFactory.newLatLngBounds(bounds, 100)
+                )
+            }
+        }
+    }
+
+    //para centrar la camara despues de cerrar el card
+    fun centerMapOnAllMarkers() {
+        val markers = marckerList.value ?: return
+        if (markers.isEmpty()) return
+
+        val boundsBuilder = LatLngBounds.builder()
+        markers.forEach {
+            boundsBuilder.include(LatLng(it.latitud, it.longitud))
+        }
+        val bounds = boundsBuilder.build()
+
+        viewModelScope.launch {
+            initialCameraPosition.animate(
+                update = CameraUpdateFactory.newLatLngBounds(bounds, 100) // padding 100
+            )
+        }
+    }
+
+
+
+
 
 }
 

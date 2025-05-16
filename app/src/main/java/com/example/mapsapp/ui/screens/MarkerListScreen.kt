@@ -139,7 +139,8 @@ fun List(navigateToDetail: (Int) -> Unit) {
 fun List(navigateToDetail: (Int) -> Unit) {
     val myViewModel: MapsViewModel = viewModel()
     val marckerList by myViewModel.marckerList.observeAsState(emptyList())
-    val snackbarHostState = remember { SnackbarHostState() } //Es el estado del Snackbar que mostrará el mensaje "Marcador eliminado" y tendrá un botón de deshacer.
+    val snackbarHostState =
+        remember { SnackbarHostState() } //Es el estado del Snackbar que mostrará el mensaje "Marcador eliminado" y tendrá un botón de deshacer.
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<Marcador?>(null) } //Aquí almacenamos el marcador que está pendiente de eliminar. Si el usuario confirma la eliminación, se borra, y si se arrepiente, puede restaurarlo.
@@ -168,7 +169,7 @@ fun List(navigateToDetail: (Int) -> Unit) {
 
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = {
-                        if (it == SwipeToDismissBoxValue.EndToStart) {
+                        if (it == SwipeToDismissBoxValue.StartToEnd) {
                             pendingDelete = marker
                             showDialog = true
                             false // Esperar confirmación
@@ -283,7 +284,9 @@ fun MarkerItem(marcador: Marcador, onClick: (Marcador) -> Unit) {
                 color = Color.Black,
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f).padding(20.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(20.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
         }

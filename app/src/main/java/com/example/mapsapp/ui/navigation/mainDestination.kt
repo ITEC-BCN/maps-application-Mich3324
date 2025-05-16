@@ -19,7 +19,11 @@ fun MainNavigationWraper(){
 
         }
         composable<Destination.Drawer> {
-            DrawerMenu(navController)
+            DrawerMenu{
+                navController.navigate(Destination.InicioDeSesion) {
+                    popUpTo<Destination.InicioDeSesion> { inclusive = true }
+                }
+            }
         }
 
         composable<Destination.InicioDeSesion> {

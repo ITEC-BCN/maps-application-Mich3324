@@ -16,7 +16,9 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +31,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -71,6 +75,7 @@ import com.example.mapsapp.data.Marcador
 import com.example.mapsapp.viewmodels.MapsViewModel
 import java.io.File
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.RectangleShape
 
 
 /*@Composable
@@ -250,6 +255,29 @@ fun DetailMarker(modifier : Modifier, id: Int, navigateBack: () -> Unit){
                 bitmap = BitmapFactory.decodeStream(stream)
             }
         }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Editar marcador",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Icono de marcador",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -257,22 +285,6 @@ fun DetailMarker(modifier : Modifier, id: Int, navigateBack: () -> Unit){
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        OutlinedTextField(
-            value = title,
-            onValueChange = { viewModel.editMarkerName(it) },
-            label = { Text("${selectedMarker?.nombre}") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = { viewModel.editMarkerDescription(it)},
-            label = { Text("${selectedMarker?.descripcion}") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -299,7 +311,7 @@ fun DetailMarker(modifier : Modifier, id: Int, navigateBack: () -> Unit){
             )
         }
         Button(onClick = { showDialog = true }) {
-            Text("Abrir Cámara o Galería")
+            Text("Selecciona una imagen")
         }
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -318,11 +330,28 @@ fun DetailMarker(modifier : Modifier, id: Int, navigateBack: () -> Unit){
                 painter = rememberAsyncImagePainter(model = selectedMarker?.image_url),
                 contentDescription = title,
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape),
+                    .size(200.dp)
+                    .clip(RectangleShape),
                 contentScale = ContentScale.Crop
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = title,
+            onValueChange = { viewModel.editMarkerName(it) },
+            label = { Text("${selectedMarker?.nombre}") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { viewModel.editMarkerDescription(it)},
+            label = { Text("${selectedMarker?.descripcion}") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = {
