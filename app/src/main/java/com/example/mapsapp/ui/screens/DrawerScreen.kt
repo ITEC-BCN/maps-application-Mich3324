@@ -1,5 +1,7 @@
 package com.example.mapsapp.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,18 +36,20 @@ import com.example.mapsapp.ui.navigation.DrawerItem
 import kotlinx.coroutines.launch
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawerMenu(logout: () -> Unit) {
     val navController = rememberNavController()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    var selectedItemIndex by remember { mutableStateOf(0) }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)// Estado inicial del cajón (cerrado)
+    val scope = rememberCoroutineScope()// Alcance de corrutina para abrir/cerrar el cajón
+    var selectedItemIndex by remember { mutableStateOf(0) }// Índice del ítem seleccionado
 
     ModalNavigationDrawer(
-        gesturesEnabled = false,
-        drawerContent = {
+        gesturesEnabled = false, // Deshabilita gestos para abrir el drawer (solo se abre con botón)
+        drawerContent = {//Contenido del cajón lateral
             ModalDrawerSheet {
+                // Se listan los ítems definidos en DrawerItem
                 DrawerItem.entries.forEachIndexed { index, drawerItem ->
                     NavigationDrawerItem(
                         icon = {
@@ -54,16 +58,16 @@ fun DrawerMenu(logout: () -> Unit) {
                                 contentDescription = drawerItem.text
                             )
                         },
-                        label = { Text(text = drawerItem.text) },
-                        selected = index == selectedItemIndex,
+                        label = { Text(text = drawerItem.text) },// Texto del ítem
+                        selected = index == selectedItemIndex,// Ítem actualmente seleccionado
                         onClick = {
-                            selectedItemIndex = index
-                            scope.launch { drawerState.close() }
-                            navController.navigate(drawerItem.route)
+                            selectedItemIndex = index// Actualiza el ítem seleccionado
+                            scope.launch { drawerState.close() }// Cierra el drawer con corrutina
+                            navController.navigate(drawerItem.route)//Navega a la ruta correspondiente
                         }
                     )
                 }
-
+                // Área inferior con botón de logout
                 Column(
                     Modifier.fillMaxSize().padding(bottom = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -78,8 +82,10 @@ fun DrawerMenu(logout: () -> Unit) {
                 }
             }
         },
+        // Estado del cajón
         drawerState = drawerState
     ) {
+        // Contenido principal de la pantalla
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -93,6 +99,7 @@ fun DrawerMenu(logout: () -> Unit) {
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
+                // Contenedor principal que renderiza el sistema de navegación interno
                 InternalnavigationWraper(navController, Modifier.padding(innerPadding))
             }
         }

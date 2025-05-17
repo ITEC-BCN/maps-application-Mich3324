@@ -35,33 +35,38 @@ import com.example.mapsapp.viewmodels.PermissionViewModel
 
 
 @Composable
+//// Función composable que muestra la pantalla de permisos y recibe una función de navegación como parámetro Recibe un callback navigateToNext que se ejecuta cuando se conceden todos los permisos.
 fun PermissionsScreen(navigateToNext: () -> Unit){
-    val activity = LocalContext.current as? Activity
-    val viewModel = viewModel<PermissionViewModel>()
+    val activity = LocalContext.current as? Activity //Se obtiene la actividad actual desde el context
+    val viewModel = viewModel<PermissionViewModel>() // Se obtiene una instancia del ViewModel
 
+    // Lista de permisos que se desean solicitar
     val permissions = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO
     )
 
-    val permissionsStatus = viewModel.permissionsStatus.value
-    var alreadyRequested by remember { mutableStateOf(false) }
+    val permissionsStatus = viewModel.permissionsStatus.value //Estado actual de los permisos desde el ViewModel
+    var alreadyRequested by remember { mutableStateOf(false) } // Bandera para saber si ya se solicitaron los permisos
 
+    // Launcher que solicita múltiples permisos y devuelve un mapa con los resultados
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { result: Map<String, Boolean> ->
+        // Se procesa el resultado de cada permiso solicitado
         permissions.forEach { permission ->
             val granted = result[permission] ?: false
             val status = when {
-                granted -> PermissionStatus.Granted
+                granted -> PermissionStatus.Granted // Si fue concedido
                 ActivityCompat.shouldShowRequestPermissionRationale(activity!!, permission) -> PermissionStatus.Denied
                 else -> PermissionStatus.PermanentlyDenied
             }
-            viewModel.updatePermissionStatus(permission, status)
+            viewModel.updatePermissionStatus(permission, status) // Se actualiza el estado en el ViewModel
         }
     }
 
+    // Se lanza el pedido de permisos al iniciar el composable, solo una vez
     LaunchedEffect(Unit) {
         if (!alreadyRequested) {
             alreadyRequested = true
@@ -76,10 +81,11 @@ fun PermissionsScreen(navigateToNext: () -> Unit){
     ) {
         Text("Permissions status:", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
+        // Por cada permiso, se muestra su estado actual
         permissions.forEach { permission ->
             val status = permissionsStatus[permission]
             val label = when (status) {
-                null -> "Solicitando..."
+                null -> "Solicitando..." // Estado inicial no se llega a visualizar
                 PermissionStatus.Granted -> "Concedido"
                 PermissionStatus.Denied -> "Denegado"
                 PermissionStatus.PermanentlyDenied -> "Denegado Permanentemente"
@@ -88,6 +94,8 @@ fun PermissionsScreen(navigateToNext: () -> Unit){
             Text("$permissionName: $label")
         }
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Si algún permiso fue denegado (pero no permanentemente), se muestra un botón para volver a pedir
         if (permissions.any {
                 permissionsStatus[it] == PermissionStatus.Denied
             }
@@ -104,16 +112,17 @@ fun PermissionsScreen(navigateToNext: () -> Unit){
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
+                // Se abre la configuración de la app para que el usuario cambie los permisos manualmente
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity!!.packageName, null)
                 }
                 activity!!.startActivity(intent)
             }) {
-                Text("Go to settings")
+                Text("Ir a configuración")
             }
         }
     }
-
+// Si todos los permisos fueron concedidos, se navega automáticamente a la siguiente pantalla
     LaunchedEffect(permissionsStatus) {
         val allGranted = permissions.all { permissionsStatus[it] == PermissionStatus.Granted }
         if (allGranted) {

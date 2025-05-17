@@ -49,18 +49,34 @@ fun Login(navToRegister: () -> Unit, navToDrawer: () -> Unit) {
     val email by viewModel.email.observeAsState("")
     val password by viewModel.password.observeAsState("")
     val showError by viewModel.showError.observeAsState(false)
-
-    LaunchedEffect(authState) {
-        if (authState == AuthState.Authenticated) {
-            navToDrawer()
+    // Se lanza un efecto cuando cambia authState o showError
+    LaunchedEffect(authState, showError) {
+        when (authState) {
+            is AuthState.Authenticated -> {
+                // Si el usuario ha iniciado sesión correctamente, navegamos al drawer
+                navToDrawer()
+            }
+            is AuthState.Error -> {
+                if (showError) {
+                    val errorMessage = (authState as AuthState.Error).message
+                    val toastMessage = if (errorMessage.contains("invalid_credentials")) {
+                        "Credenciales inválidas"
+                    } else {
+                        "Ha ocurrido un error"
+                    }
+                    Toast.makeText(context, toastMessage, Toast.LENGTH_LONG).show()
+                    viewModel.errorMessageShowed()
+                }
+            }
+            else -> Unit
         }
     }
+
 
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Imagen de fondo (pon tu propia imagen en res/drawable)
         Image(
             painter = painterResource(id = R.drawable.fondo), // Cambia 'fondo' por tu imagen
             contentDescription = null,
@@ -68,20 +84,7 @@ fun Login(navToRegister: () -> Unit, navToDrawer: () -> Unit) {
             contentScale = ContentScale.Crop
         )
 
-        if (authState == AuthState.Authenticated) {
-            navToDrawer()
-        } else {
-            if (showError) {
-                val errorMessage = (authState as AuthState.Error).message
-                if (errorMessage.contains("invalid_credentials")) {
-                    Toast.makeText(context, "Invalid credentials", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(context, "An error has ocurred", Toast.LENGTH_LONG).show()
-                }
-                viewModel.errorMessageShowed()
-            }
 
-        }
         Column(
             Modifier
                 .fillMaxSize()

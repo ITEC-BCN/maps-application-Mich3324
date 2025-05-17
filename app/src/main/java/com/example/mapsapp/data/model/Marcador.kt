@@ -1,4 +1,4 @@
-package com.example.mapsapp.data
+package com.example.mapsapp.data.model
 
 import kotlinx.serialization.Serializable
 

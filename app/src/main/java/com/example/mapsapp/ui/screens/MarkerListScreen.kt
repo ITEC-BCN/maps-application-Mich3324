@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,7 +36,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,93 +45,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.mapsapp.MyAppSingleton
 import com.example.mapsapp.R
-import com.example.mapsapp.data.Marcador
+import com.example.mapsapp.data.model.Marcador
 import com.example.mapsapp.viewmodels.MapsViewModel
 import kotlinx.coroutines.launch
-
-
-/*@Composable
-fun List(navigateToDetail: (Int) -> Unit) {
-    val myViewModel: MapsViewModel = viewModel()
-    val marckerList by myViewModel.marckerList.observeAsState(emptyList())
-
-    LaunchedEffect(Unit) {
-        myViewModel.getAllMarkers()
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .padding(top = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        itemsIndexed(
-            marckerList,
-            key = { _, marker -> marker.id!! }
-        ) { _, marker ->
-
-            val dismissState = rememberSwipeToDismissBoxState(
-                confirmValueChange = {
-                    if (it == SwipeToDismissBoxValue.EndToStart) {
-                        myViewModel.deleteMarker(marker.id!!)
-                        true
-                    } else false
-                }
-            )
-
-            SwipeToDismissBox(
-                state = dismissState,
-                backgroundContent = {
-
-                    // Usamos el progreso del swipe para escalar/animar el icono
-                    val progress = dismissState.progress
-
-                    val scale = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                        1.2f
-                    } else {
-                        1f
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.DarkGray)
-                            .padding(horizontal = 20.dp),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = Color.Red,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                }
-                        )
-                    }
-                }
-            ) {
-                MarkerItem(marker) {
-                    navigateToDetail(marker.id!!)
-                }
-            }
-        }
-    }
-}*/
-
 
 @Composable
 fun List(navigateToDetail: (Int) -> Unit) {
@@ -167,16 +88,17 @@ fun List(navigateToDetail: (Int) -> Unit) {
                 key = { _, marker -> marker.id!! }
             ) { _, marker ->
 
+                // Estado de deslizamiento para SwipeToDismiss
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = {
                         if (it == SwipeToDismissBoxValue.StartToEnd) {
-                            pendingDelete = marker
-                            showDialog = true
+                            pendingDelete = marker // Almacena marcador pendiente de borrar
+                            showDialog = true // Abre el diálogo
                             false // Esperar confirmación
                         } else false
                     }
                 )
-
+                // Componente que permite deslizar para eliminar
                 SwipeToDismissBox(
                     state = dismissState,
                     backgroundContent = {
@@ -196,6 +118,7 @@ fun List(navigateToDetail: (Int) -> Unit) {
                         }
                     }
                 ) {
+                    // Contenido visible: el item del marcador
                     MarkerItem(marker) {
                         navigateToDetail(marker.id!!)
                     }
@@ -219,12 +142,14 @@ fun List(navigateToDetail: (Int) -> Unit) {
                         showDialog = false
                         pendingDelete = null
 
+                        // Muestra Snackbar con opción de deshacer
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
                                 message = "Marcador eliminado",
                                 actionLabel = "Deshacer",
                                 duration = SnackbarDuration.Short
                             )
+                            // Si el usuario pulsa "Deshacer", vuelve a insertar el marcador
                             if (result == SnackbarResult.ActionPerformed) {
                                 myViewModel.insertMarker(deletedMarker)
                             }

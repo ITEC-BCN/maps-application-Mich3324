@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Base64
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.tween
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.CameraPosition
@@ -15,13 +14,11 @@ import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.mapsapp.MyAppSingleton
-import com.example.mapsapp.data.Marcador
+import com.example.mapsapp.data.model.Marcador
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -74,11 +71,13 @@ class MapsViewModel() : ViewModel() {
         longitud: Double,
         image: Bitmap?
     ) {
+        // Convertimos la imagen Bitmap a bytes para subirla
         val stream = ByteArrayOutputStream()
         image?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        _showLoading.value = false
+        _showLoading.value = false // indicamos que empieza la carga
 
         viewModelScope.launch(Dispatchers.IO) {
+            // Subimos la imagen y obtenemos su nombre/url
             val imageName = database.uploadImage(stream.toByteArray())
             val newMarck = Marcador(
                 nombre = nombre,
@@ -88,18 +87,13 @@ class MapsViewModel() : ViewModel() {
                 image_url = imageName
             )
             database.insertMarcador(newMarck)
-
-            //Actualiza la lista para que la vista reaccione
-            /*withContext(Dispatchers.Main) {*/
-                /*delay(5000)*/
-
+            // Actualizamos la lista para que la UI refleje el nuevo marcador
             val nuevos = database.getAllMarcador()
             withContext(Dispatchers.Main) {
                 _marckerList.value = nuevos
                 _showLoading.value = true
             }
-                /*getAllMarkers()*/
-            /*}*/
+
         }
     }
 
@@ -118,12 +112,13 @@ class MapsViewModel() : ViewModel() {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun updateMarker(id: Int, nombre: String, descripcion: String, image: Bitmap?){
-        var imageName : String? = null
+    fun updateMarker(id: Int, nombre: String, descripcion: String, image: Bitmap?) {
+        var imageName: String? = null
         var stream: ByteArrayOutputStream? = null
-        if(image != null){
+        if (image != null) {
             stream = ByteArrayOutputStream()
             image.compress(Bitmap.CompressFormat.PNG, 0, stream)
+            // Extraemos el nombre de la imagen anterior para actualizarla (removiendo la URL base)
             imageName =
                 _selectedMarker?.value?.image_url?.removePrefix("https://xlebkybtqrbnyowaavbq.supabase.co/storage/v1/object/public/images/")
         }
@@ -131,10 +126,6 @@ class MapsViewModel() : ViewModel() {
             database.updateMarcador(id, nombre, descripcion, imageName, stream?.toByteArray())
         }
     }
-
-
-
-
 
 
     fun deleteMarker(id: Int) {
@@ -145,12 +136,10 @@ class MapsViewModel() : ViewModel() {
     }
 
 
-
-
     fun getMarkerById(id: Int) {
-        CoroutineScope(Dispatchers.IO).launch{
+        CoroutineScope(Dispatchers.IO).launch {
             val marcador = database.getMarcador(id)
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 _selectedMarker.value = marcador
             }
         }
@@ -164,8 +153,7 @@ class MapsViewModel() : ViewModel() {
         }
     }
 
-
-
+    // Editores para los campos del marcador en la UI
     fun editMarkerName(name: String) {
         _marckername.value = name
     }
@@ -179,24 +167,19 @@ class MapsViewModel() : ViewModel() {
         _longitud.value = lng
     }
 
-
-
-    fun removeMarker(latLng: LatLng) {
-        _markerPositions.value -= latLng
-    }
-
+    // Convierte Bitmap a base64 para almacenarlo como string
     fun bitmapToBase64(bitmap: Bitmap): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         val byteArray = byteArrayOutputStream.toByteArray()
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
-
+    // Asigna el string base64 de la imagen al LiveData
     fun setBitmap(bitmap: Bitmap) {
         _image.value = bitmapToBase64(bitmap)
     }
 
-
+    // Valores por defecto para centrar la cámara en el mapa
     val defaultZoom = 10f
     val defaultLatLng = LatLng(41.3874, 2.1686)
 
@@ -211,6 +194,7 @@ class MapsViewModel() : ViewModel() {
 
     //para el card floating
 
+    // Selecciona un marcador y centra la cámara en él con zoom 15
     fun selectMarker(marcador: Marcador) {
         _selectedMarker.value = marcador
         viewModelScope.launch {
@@ -224,27 +208,7 @@ class MapsViewModel() : ViewModel() {
     }
 
     fun clearSelectedMarcador() {
-        _selectedMarker.value= null
-    }
-
-    fun clearSelectedMarkerAndResetCamera() {
         _selectedMarker.value = null
-
-        viewModelScope.launch {
-            // Solo si hay marcadores en la lista
-            val markers = marckerList.value
-            if (!markers.isNullOrEmpty()) {
-                val builder = LatLngBounds.Builder()
-                markers.forEach { marcador ->
-                    builder.include(LatLng(marcador.latitud, marcador.longitud))
-                }
-                val bounds = builder.build()
-
-                initialCameraPosition.animate(
-                    update = CameraUpdateFactory.newLatLngBounds(bounds, 100)
-                )
-            }
-        }
     }
 
     //para centrar la camara despues de cerrar el card
@@ -264,10 +228,6 @@ class MapsViewModel() : ViewModel() {
             )
         }
     }
-
-
-
-
 
 }
 

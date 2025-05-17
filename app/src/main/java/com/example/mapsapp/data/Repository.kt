@@ -1,8 +1,8 @@
-package com.example.mapsapp.data
-
+/*package com.example.mapsapp.data
+//siguein
+import com.example.mapsapp.data.model.Marcador
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
 
 class MarcadorRepository(val client: SupabaseClient) {
 
@@ -39,3 +39,4 @@ class MarcadorRepository(val client: SupabaseClient) {
 
 
 }
+*/
